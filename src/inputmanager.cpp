@@ -145,6 +145,13 @@ bool InputManager::readConfFile(const string &conffile) {
 				map.type = InputManager::MAPPING_TYPE_KEYPRESS;
 				map.value = atoi(values[1].c_str());
 				actions[action].maplist.push_back(map);
+			} else if (values[0] == "joystickhat") {
+				InputMap map;
+				map.type = InputManager::MAPPING_TYPE_HAT;
+				map.num = atoi(values[1].c_str());	//device index
+				map.value = atoi(values[2].c_str());	//hat index
+				map.treshold = atoi(values[3].c_str());	//hat value
+				actions[action].maplist.push_back(map);
 			} else {
 				ERROR("%s:%d Invalid syntax or unsupported mapping type '%s'.", conffile.c_str(), linenum, value.c_str());
 				return false;
@@ -263,6 +270,13 @@ SDL_Event *InputManager::fakeEventForAction(int action) {
 			event->type = SDL_KEYDOWN;
 			event->key.keysym.sym = (SDLKey)map.value;
 		break;
+		case InputManager::MAPPING_TYPE_HAT:
+			event->type = SDL_JOYHATMOTION;
+			event->jhat.type = SDL_JOYHATMOTION;
+			event->jhat.which = map.num;
+			event->jhat.hat = map.value;
+			event->jhat.value = map.treshold;
+		break;
 	}
 	return event;
 }
@@ -315,6 +329,10 @@ bool InputManager::isActive(int action) {
 					if (map.treshold < 0 && axyspos < map.treshold) return true;
 					if (map.treshold > 0 && axyspos > map.treshold) return true;
 				}
+			break;
+			case InputManager::MAPPING_TYPE_HAT:
+				if (map.num < joysticks.size() && SDL_JoystickGetHat(joysticks[map.num], map.treshold))
+					return true;
 			break;
 			case InputManager::MAPPING_TYPE_KEYPRESS:
 				uint8_t *keystate = SDL_GetKeyState(NULL);
