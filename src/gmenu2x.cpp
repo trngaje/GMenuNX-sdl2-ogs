@@ -71,7 +71,7 @@
 #include "menusettingdatetime.h"
 #include "debug.h"
 
-#include "SDL_getenv.h"
+#include <SDL_getenv.h>
 
 #include <sys/mman.h>
 
