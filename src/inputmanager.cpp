@@ -331,8 +331,12 @@ bool InputManager::isActive(int action) {
 				}
 			break;
 			case InputManager::MAPPING_TYPE_HAT:
-				if (map.num < joysticks.size() && SDL_JoystickGetHat(joysticks[map.num], map.treshold))
-					return true;
+				//printf("%d is %d,%d\n",map.num,map.value,map.treshold);
+				//printf("%d,%d\n",SDL_JoystickGetHat(joysticks[map.num], map.value),joysticks.size());		
+				if (map.num < joysticks.size()){
+					int axyspos = SDL_JoystickGetHat(joysticks[map.num], map.value);
+					if (map.treshold == axyspos) return true;
+				}
 			break;
 			case InputManager::MAPPING_TYPE_KEYPRESS:
 				uint8_t *keystate = SDL_GetKeyState(NULL);

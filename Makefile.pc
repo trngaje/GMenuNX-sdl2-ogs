@@ -9,7 +9,7 @@ STRIP = strip
 CFLAGS = -I"/usr/include" `sdl-config --cflags` -DTARGET_PC -DTARGET=$(TARGET) -D__BUILDTIME__="$(BUILDTIME)" -DLOG_LEVEL=4 -Wall -Wundef -Wno-deprecated -Wno-unknown-pragmas -Wno-format -pg -O0 -g -ggdb
 CXXFLAGS = $(CFLAGS)
 #LDFLAGS = -L"/usr/lib" `sdl-config --libs` -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -ljpeg -lpng12 -lz
-LDFLAGS = -L"/usr/lib" `sdl-config --libs` -lSDL -lSDLmain -lfreetype -lSDL_image -lSDL_ttf -ljpeg -lz
+LDFLAGS = -L"/usr/lib" `sdl-config --libs` -lSDL -lSDLmain -lfreetype -lSDL_image -lSDL_ttf -ljpeg -lpng16 -lz
 
 OBJDIR = objs/$(TARGET)
 DISTDIR = dist/$(TARGET)/gmenu2x
@@ -52,8 +52,8 @@ dist: dir shared
 	cp -RH assets/$(TARGET)/skin.conf $(DISTDIR)/skins/Default
 	cp -RH assets/$(TARGET)/font.ttf $(DISTDIR)/skins/Default
 	cp -RH assets/$(TARGET)/gmenu2x.conf $(DISTDIR)
-	#cp -RH assets/$(TARGET)/icons/* $(DISTDIR)/skins/Default/icons/
-	cp -RH assets/raspbeerypi/emulators/* $(DISTDIR)/sections/emulators/
+	cp -RH assets/$(TARGET)/icons/* $(DISTDIR)/skins/Default/icons/
+	cp -RH assets/raspberrypi/emulators/* $(DISTDIR)/sections/emulators/
 	# cp -RH assets/$(TARGET)/games/* $(DISTDIR)/sections/games/
 	# cp -RH assets/$(TARGET)/applications/* $(DISTDIR)/sections/applications/
 	cd $(DISTDIR)/.. && zip -FSr GMenuNX.zip gmenu2x

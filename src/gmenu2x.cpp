@@ -236,9 +236,12 @@ GMenu2X::GMenu2X() {
 
 	//s->ScreenSurface = SDL_SetVideoMode(0, 0, confInt["videoBpp"], SDL_HWSURFACE);
 	s->ScreenSurface = SDL_SetVideoMode(0, 0, nDepth, SDL_HWSURFACE);
-
+	//s->ScreenSurface = SDL_SetVideoMode(0, 0, nDepth, SDL_FULLSCREEN);
 	//s->raw = SDL_CreateRGBSurface(SDL_SWSURFACE, resX, resY, confInt["videoBpp"], 0, 0, 0, 0);
 	s->raw = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 240, nDepth, 0, 0, 0, 0);
+	//s ->raw =  SDL_SetVideoMode(nResX,nResY,nDepth,nFlags);
+	//s->raw = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_HWSURFACE | SDL_DOUBLEBUF);
+
 	setWallpaper(confStr["wallpaper"]);
 
 	setSkin(confStr["skin"], false, true);
