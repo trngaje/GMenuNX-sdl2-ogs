@@ -48,7 +48,7 @@ clean:
 dist: dir shared
 	install -m755 -D $(APPNAME) $(DISTDIR)/gmenu2x
 	install -m644 assets/$(TARGET)/input.conf $(DISTDIR)
-	# install -m755 -d $(DISTDIR)/sections/applications $(DISTDIR)/sections/emulators $(DISTDIR)/sections/games $(DISTDIR)/sections/settings
+	install -m755 -d $(DISTDIR)/sections/applications $(DISTDIR)/sections/emulators $(DISTDIR)/sections/games $(DISTDIR)/sections/settings
 	install -m755 -d $(DISTDIR)/sections
 	install -m755 -d $(DISTDIR)/sections/emulators
 	install -m644 -D README.md $(DISTDIR)/README.txt
@@ -62,6 +62,7 @@ dist: dir shared
 	cp -RH assets/$(TARGET)/gmenu2x.conf $(DISTDIR)
 	cp -RH assets/$(TARGET)/icons/* $(DISTDIR)/skins/Default/icons/
 	cp -RH assets/raspberrypi/emulators/* $(DISTDIR)/sections/emulators/
+	cp -RH assets/raspberrypi/apps/* $(DISTDIR)/apps/
 	# cp -RH assets/$(TARGET)/games/* $(DISTDIR)/sections/games/
 	# cp -RH assets/$(TARGET)/applications/* $(DISTDIR)/sections/applications/
 	cd $(DISTDIR)/.. && zip -FSr GMenuNX.zip gmenu2x

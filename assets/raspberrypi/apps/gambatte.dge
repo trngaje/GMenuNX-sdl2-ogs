@@ -1,0 +1,1 @@
+/opt/retropie/emulators/retroarch/bin/retroarch -L /opt/retropie/libretrocores/lr-gambatte/gambatte_libretro.so --config /opt/retropie/configs/gbc/retroarch.cfg $1
