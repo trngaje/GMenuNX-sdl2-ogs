@@ -23,7 +23,7 @@
 #include "utilities.h"
 #include "debug.h"
 
-#include "hq4x.h"
+#include "hq2x.h"
 
 #include <cassert>
 
@@ -176,7 +176,7 @@ void Surface::unlock() {
 void Surface::flip() 
 {
 	//SDL_SoftStretch(raw, NULL, ScreenSurface, NULL);	//BlitScaled
-	hq4x_32((unsigned int*)raw -> pixels, (unsigned int*)hqxSurface -> pixels, raw->w, raw->h);
+	hq2x_32((unsigned int*)raw -> pixels, (unsigned int*)hqxSurface -> pixels, raw->w, raw->h);
 
 	SDL_SoftStretch(hqxSurface, NULL, ScreenSurface, NULL);
 	SDL_Flip(raw);
