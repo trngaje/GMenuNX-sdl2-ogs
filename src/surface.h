@@ -76,6 +76,7 @@ public:
 
 	SDL_Surface *raw;
 	SDL_Surface *ScreenSurface;
+	SDL_Surface *hqxSurface;
 
 	void free();
 	void load(const string &img, bool alpha=true, const string &skin="");

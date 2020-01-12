@@ -22,6 +22,9 @@
 #include "fonthelper.h"
 #include "utilities.h"
 #include "debug.h"
+
+#include "hq4x.h"
+
 #include <cassert>
 
 RGBAColor strtorgba(const string &strColor) {
@@ -172,7 +175,10 @@ void Surface::unlock() {
 
 void Surface::flip() 
 {
-	SDL_SoftStretch(raw, NULL, ScreenSurface, NULL);
+	//SDL_SoftStretch(raw, NULL, ScreenSurface, NULL);	//BlitScaled
+	hq4x_32((unsigned int*)raw -> pixels, (unsigned int*)hqxSurface -> pixels, raw->w, raw->h);
+
+	SDL_SoftStretch(hqxSurface, NULL, ScreenSurface, NULL);
 	SDL_Flip(raw);
 }
 
