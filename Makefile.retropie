@@ -62,6 +62,7 @@ dist: dir shared
 	cp -RH assets/$(TARGET)/gmenu2x.conf $(DISTDIR)
 	cp -RH assets/$(TARGET)/icons/* $(DISTDIR)/skins/Default/icons/
 	cp -RH assets/retropie/emulators/* $(DISTDIR)/sections/emulators/
+	cp -RH assets/retropie/applications/* $(DISTDIR)/sections/applications/
 	cp -RH assets/retropie/apps/* $(DISTDIR)/apps/
 	# cp -RH assets/$(TARGET)/games/* $(DISTDIR)/sections/games/
 	# cp -RH assets/$(TARGET)/applications/* $(DISTDIR)/sections/applications/
