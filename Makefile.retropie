@@ -51,6 +51,7 @@ dist: dir shared
 	install -m755 -d $(DISTDIR)/sections/applications $(DISTDIR)/sections/emulators $(DISTDIR)/sections/games $(DISTDIR)/sections/settings
 	install -m755 -d $(DISTDIR)/sections
 	install -m755 -d $(DISTDIR)/sections/emulators
+	install -m755 -d $(DISTDIR)/apps
 	install -m644 -D README.md $(DISTDIR)/README.txt
 	install -m644 -D COPYING $(DISTDIR)/COPYING
 	install -m644 -D ChangeLog.md $(DISTDIR)/ChangeLog
