@@ -1,0 +1,6 @@
+title=gambatte
+description=GB/GBC Emulator
+icon=skin:icons/ohboy.png
+exec=/opt/retropie/emulators/retroarch/bin/retroarch -L /opt/retropie/libretrocores/lr-gambatte/gambatte_libretro.so --config /opt/retropie/configs/gb/retroarch.cfg
+selectorbrowser=true
+selectordir=/home/pi/RetroPie/roms/gb/
