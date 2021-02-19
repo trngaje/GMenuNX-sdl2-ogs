@@ -47,6 +47,10 @@ SDL_Color rgbatosdl(RGBAColor color) {
 	return (SDL_Color){color.r, color.g, color.b, color.a};
 }
 
+#ifdef TARGET_OGS
+SDL_Window* Surface::sdlWindow=NULL;
+#endif
+
 Surface::Surface() {
 	raw = NULL;
 	dblbuffer = NULL;
@@ -97,7 +101,12 @@ Surface::Surface(int w, int h, uint32_t flags) {
 	bmask = 0x00ff0000;
 	amask = 0xff000000;
 #endif
+#ifdef TARGET_OGS
+	raw = SDL_ConvertSurfaceFormat(SDL_CreateRGBSurface( flags, w, h, 16, rmask, gmask, bmask, amask )
+		, SDL_PIXELFORMAT_RGBA8888, 0);
+#else
 	raw = SDL_DisplayFormat( SDL_CreateRGBSurface( flags, w, h, 16, rmask, gmask, bmask, amask ) );
+#endif
 	//SDL_SetAlpha(raw, SDL_SRCALPHA|SDL_RLEACCEL, SDL_ALPHA_OPAQUE);
 	halfW = w/2;
 	halfH = h/2;
@@ -110,13 +119,32 @@ Surface::~Surface() {
 void Surface::enableVirtualDoubleBuffer(SDL_Surface *surface, bool alpha) {
 	dblbuffer = surface;
 	if (alpha)
+	{
+#ifdef TARGET_OGS
+		raw = SDL_ConvertSurfaceFormat(dblbuffer,SDL_PIXELFORMAT_RGBA8888, 0);
+#else
 		raw = SDL_DisplayFormatAlpha(dblbuffer);
+#endif	
+	}	
 	else
+	{
+#ifdef TARGET_OGS
+		raw = SDL_ConvertSurfaceFormat(dblbuffer,SDL_PIXELFORMAT_RGBA8888, 0);
+
+#else
 		raw = SDL_DisplayFormat(dblbuffer);
+#endif
+	}
+		
 }
 
-void Surface::enableAlpha() {
+void Surface::enableAlpha() 
+{
+#ifdef TARGET_OGS
+	SDL_Surface *alpha_surface = SDL_ConvertSurfaceFormat(raw,SDL_PIXELFORMAT_RGBA8888, 0);
+#else
 	SDL_Surface *alpha_surface = SDL_DisplayFormatAlpha(raw);
+#endif
 	SDL_FreeSurface(raw);
 	raw = alpha_surface;
 }
@@ -176,10 +204,20 @@ void Surface::unlock() {
 void Surface::flip() 
 {
 	//SDL_SoftStretch(raw, NULL, ScreenSurface, NULL);	//BlitScaled
+#ifdef TARGET_OGS
+	SDL_BlitScaled(raw, NULL, ScreenSurface, NULL);
+
+	if(Surface::sdlWindow)
+	{
+		SDL_UpdateWindowSurface(Surface::sdlWindow);
+	}	
+#else
 	hq2x_32((unsigned int*)raw -> pixels, (unsigned int*)hqxSurface -> pixels, raw->w, raw->h);
 
 	SDL_SoftStretch(hqxSurface, NULL, ScreenSurface, NULL);
 	SDL_Flip(raw);
+#endif
+
 }
 
 void Surface::putPixel(int x, int y, RGBAColor color) {
@@ -259,8 +297,15 @@ void Surface::write(FontHelper *font, const string &text, int x, int y, const ui
 	font->write(this, text, x, y, align, fgColor, bgColor);
 }
 
-void Surface::operator = (SDL_Surface *s) {
+void Surface::operator = (SDL_Surface *s) 
+{
+#ifdef TARGET_OGS
+	raw = SDL_ConvertSurfaceFormat(s,SDL_PIXELFORMAT_RGBA8888,0);
+#else
 	raw = SDL_DisplayFormat(s);
+#endif
+	
+
 	halfW = raw->w/2;
 	halfH = raw->h/2;
 }
@@ -436,8 +481,10 @@ bool Surface::blit(Surface *destination, SDL_Rect destrect, const uint8_t align,
 		srcrect.y = raw->h - srcrect.h;
 	}
 
+#ifndef TARGET_OGS
 	if (alpha > 0 && alpha != raw->format->alpha)
 		SDL_SetAlpha(raw, SDL_SRCALPHA | SDL_RLEACCEL, alpha);
+#endif
 
 	return SDL_BlitSurface(raw, &srcrect, destination->raw, &destrect);
 }
@@ -463,9 +510,12 @@ void Surface::softStretch(uint16_t x, uint16_t y, bool keep_aspect, bool maximiz
 void Surface::setAlpha(uint8_t alpha) {
 	SDL_PixelFormat* fmt = raw->format;
 
+#ifndef TARGET_OGS
 	if( fmt->Amask == 0 ) { // If surface has no alpha channel, just set the surface alpha.
 		SDL_SetAlpha(raw, SDL_SRCALPHA, alpha);
-	} else { // Else change the alpha of each pixel.
+	} else 
+#endif	
+	{ // Else change the alpha of each pixel.
 		unsigned bpp = fmt->BytesPerPixel;
 		float scale = alpha / 255.0f; // Scaling factor to clamp alpha to [0, alpha].
 

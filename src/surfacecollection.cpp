@@ -42,8 +42,8 @@ string SurfaceCollection::getSkinFilePath(const string &file) {
 		return "skins/"+skin+"/"+file;
 	else if (fileExists("skins/Default/"+file))
 		return "skins/Default/"+file;
-
-	return "";
+	else
+		return "";
 }
 
 void SurfaceCollection::debug() {

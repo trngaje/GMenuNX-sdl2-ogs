@@ -68,11 +68,21 @@ public:
 	Surface(const string &img, bool alpha, const string &skin="");
 	Surface(SDL_Surface *s, SDL_PixelFormat *fmt = NULL, uint32_t flags = 0);
 	Surface(Surface *s);
+	
+#ifdef TARGET_OGS
+	Surface(int w, int h, Uint32 flags = 0);
+#else
 	Surface(int w, int h, uint32_t flags = SDL_HWSURFACE|SDL_SRCALPHA);
+#endif
+	
 	~Surface();
 
 	void enableVirtualDoubleBuffer(SDL_Surface *surface, bool alpha=true);
 	void enableAlpha();
+
+#ifdef TARGET_OGS
+	static SDL_Window* sdlWindow;
+#endif
 
 	SDL_Surface *raw;
 	SDL_Surface *ScreenSurface;

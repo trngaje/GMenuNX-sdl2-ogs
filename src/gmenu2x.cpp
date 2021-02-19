@@ -26,6 +26,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <math.h>
+
+#ifdef TARGET_OGS
+#include <SDL.h>
+#include <SDL2_gfxPrimitives.h>
+#endif
+
 #include <signal.h>
 
 #include <sys/statvfs.h>
@@ -71,12 +77,18 @@
 #include "menusettingdatetime.h"
 #include "debug.h"
 
+#ifndef TARGET_OGS
 #include <SDL_getenv.h>
+#endif
 
 #include <sys/mman.h>
 
 #include <ctime>
 #include <sys/time.h>   /* for settimeofday() */
+
+#ifdef TARGET_OGS
+#include <linux/limits.h>
+#endif
 
 #define sync() sync(); system("sync");
 
@@ -89,6 +101,10 @@ using std::ifstream;
 using std::ofstream;
 using std::stringstream;
 using namespace fastdelegate;
+
+#ifdef TARGET_OGS
+char abspath[PATH_MAX];
+#endif
 
 // Note: Keep this in sync with the enum!
 static const char *colorNames[NUM_COLORS] = {
@@ -186,13 +202,23 @@ void GMenu2X::quit() {
 	hwDeinit();
 }
 
+#ifdef TARGET_OGS
+int main(int argc, char* argv[]) {
+#else
 int main(int /*argc*/, char * /*argv*/[]) {
+#endif
 	INFO("GMenu2X starting: If you read this message in the logs, check http://mtorromeo.github.com/gmenu2x/troubleshooting.html for a solution");
 
 	signal(SIGINT, &quit_all);
 	signal(SIGSEGV,&quit_all);
 	signal(SIGTERM,&quit_all);
 
+#ifdef TARGET_OGS
+	if (realpath(argv[0], abspath) == NULL)
+	{
+		printf("[trngaje] realpath error");
+	}
+#endif
 	app = new GMenu2X();
 	DEBUG("Starting main()");
 	app->main();
@@ -227,6 +253,25 @@ GMenu2X::GMenu2X() {
 
 	s = new Surface();
 
+#ifdef TARGET_OGS
+	printf("[trngaje] resX=%d, resY=%d\n", resX, resY);
+	SDL_Window* sdlWindow = SDL_CreateWindow("GMenu2x",  
+                              SDL_WINDOWPOS_UNDEFINED,  
+                              SDL_WINDOWPOS_UNDEFINED,  
+                              resX,resY,  
+                              SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);  
+	printf("[trngaje] sdlWindow=0x%x\n", sdlWindow);
+    SDL_Surface* sdlSurface = SDL_GetWindowSurface(sdlWindow);
+	printf("[trngaje] sdlSurface=0x%x\n", sdlSurface);
+	s->ScreenSurface = sdlSurface;
+	s->raw = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 240, 16, 0, 0, 0, 0);
+	printf("[trngaje] s->raw=0x%x\n", s->raw);
+	Surface::sdlWindow = sdlWindow;
+	s->hqxSurface = SDL_CreateRGBSurface(0, 320 * 2, 240 * 2, 16, 0, 0, 0, 0);
+	printf("[trngaje] s->hqxSurface=0x%x\n", s->hqxSurface);
+	
+	SDL_ShowCursor(0);
+#else
 	SDL_ShowCursor(0);
 
 	const SDL_VideoInfo* vInfo = SDL_GetVideoInfo();
@@ -243,6 +288,9 @@ GMenu2X::GMenu2X() {
 	s->hqxSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, 320 * 2, 240 * 2, nDepth, 0, 0, 0, 0);
 	//s ->raw =  SDL_SetVideoMode(nResX,nResY,nDepth,nFlags);
 	//s->raw = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_HWSURFACE | SDL_DOUBLEBUF);	//pc
+
+#endif
+
 
 	setWallpaper(confStr["wallpaper"]);
 
@@ -1992,11 +2040,19 @@ int GMenu2X::setBacklight(int val, bool popup) {
 
 const string &GMenu2X::getExePath() {
 	if (path.empty()) {
+#ifdef TARGET_OGS
+		string temp_path(abspath);
+		path = temp_path;
+
+        int l = strlen(abspath); 
+#else
 		char buf[255];
 		memset(buf, 0, 255);
 		int l = readlink("/proc/self/exe", buf, 255);
 
 		path = buf;
+#endif		
+
 		path = path.substr(0, l);
 		l = path.rfind("/");
 		path = path.substr(0, l + 1);

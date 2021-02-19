@@ -47,7 +47,12 @@ InputManager::InputManager()
 
 InputManager::~InputManager() {
 	for (uint32_t x = 0; x < joysticks.size(); x++)
+
+#ifdef TARGET_OGS
+		if(SDL_JoystickGetAttached(joysticks[x]))
+#else
 		if(SDL_JoystickOpened(x))
+#endif
 			SDL_JoystickClose(joysticks[x]);
 }
 
@@ -65,7 +70,12 @@ void InputManager::initJoysticks() {
 	for (int x = 0; x < numJoy; x++) {
 		SDL_Joystick *joy = SDL_JoystickOpen(x);
 		if (joy) {
+#ifdef TARGET_OGS
+			INFO("Initialized joystick: '%s'", SDL_JoystickName(joy));
+#else
 			INFO("Initialized joystick: '%s'", SDL_JoystickName(x));
+#endif			
+
 			joysticks.push_back(joy);
 		}
 		else WARNING("Failed to initialize joystick: %i", x);
@@ -140,17 +150,17 @@ bool InputManager::readConfFile(const string &conffile) {
 				map.value = atoi(values[2].c_str());
 				map.treshold = atoi(values[3].c_str());
 				actions[action].maplist.push_back(map);
+			} else if (values[0] == "joystickhat" && values.size()==4) {
+				InputMap map;
+				map.type = InputManager::MAPPING_TYPE_HAT;
+				map.num = atoi(values[1].c_str());
+				map.value = atoi(values[2].c_str());
+				map.treshold = atoi(values[3].c_str());
+				actions[action].maplist.push_back(map);
 			} else if (values[0] == "keyboard") {
 				InputMap map;
 				map.type = InputManager::MAPPING_TYPE_KEYPRESS;
 				map.value = atoi(values[1].c_str());
-				actions[action].maplist.push_back(map);
-			} else if (values[0] == "joystickhat") {
-				InputMap map;
-				map.type = InputManager::MAPPING_TYPE_HAT;
-				map.num = atoi(values[1].c_str());	//device index
-				map.value = atoi(values[2].c_str());	//hat index
-				map.treshold = atoi(values[3].c_str());	//hat value
 				actions[action].maplist.push_back(map);
 			} else {
 				ERROR("%s:%d Invalid syntax or unsupported mapping type '%s'.", conffile.c_str(), linenum, value.c_str());
@@ -172,7 +182,7 @@ void InputManager::setActionsCount(int count) {
 		InputManagerAction action;
 		action.active = false;
 		action.interval = 0;
-		// action.last = 0;
+		action.last = 0;
 		action.timer = NULL;
 		actions.push_back(action);
 	}
@@ -266,16 +276,23 @@ SDL_Event *InputManager::fakeEventForAction(int action) {
 			event->jaxis.axis = map.value;
 			event->jaxis.value = map.treshold;
 		break;
-		case InputManager::MAPPING_TYPE_KEYPRESS:
-			event->type = SDL_KEYDOWN;
-			event->key.keysym.sym = (SDLKey)map.value;
-		break;
 		case InputManager::MAPPING_TYPE_HAT:
 			event->type = SDL_JOYHATMOTION;
 			event->jhat.type = SDL_JOYHATMOTION;
 			event->jhat.which = map.num;
 			event->jhat.hat = map.value;
 			event->jhat.value = map.treshold;
+			
+		break;
+		case InputManager::MAPPING_TYPE_KEYPRESS:
+			event->type = SDL_KEYDOWN;
+			
+#ifdef TARGET_OGS
+			event->key.keysym.sym = (SDL_Keycode)map.value;
+#else
+			event->key.keysym.sym = (SDLKey)map.value;
+#endif			
+
 		break;
 	}
 	return event;
@@ -331,16 +348,38 @@ bool InputManager::isActive(int action) {
 				}
 			break;
 			case InputManager::MAPPING_TYPE_HAT:
+#ifdef TARGET_OGS
+				if (map.num < joysticks.size()) {
+				/*
+				#define 	SDL_HAT_CENTERED   0x00
+				#define 	SDL_HAT_UP   0x01
+				#define 	SDL_HAT_RIGHT   0x02
+				#define 	SDL_HAT_DOWN   0x04
+				#define 	SDL_HAT_LEFT   0x08
+				*/
+					if (SDL_JoystickGetHat(joysticks[map.num], map.value) &  map.treshold) return true;
+				}
+#else
 				//printf("%d is %d,%d\n",map.num,map.value,map.treshold);
 				//printf("%d,%d\n",SDL_JoystickGetHat(joysticks[map.num], map.value),joysticks.size());		
 				if (map.num < joysticks.size()){
 					int axyspos = SDL_JoystickGetHat(joysticks[map.num], map.value);
 					if (map.treshold == axyspos) return true;
 				}
+
+#endif
+
 			break;
 			case InputManager::MAPPING_TYPE_KEYPRESS:
+#ifdef TARGET_OGS
+				const Uint8 *keystate = SDL_GetKeyboardState(NULL);
+				if (keystate[map.value])
+					return true;
+#else
 				uint8_t *keystate = SDL_GetKeyState(NULL);
 				return keystate[map.value];
+#endif			
+
 			break;
 		}
 	}
